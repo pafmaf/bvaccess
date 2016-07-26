@@ -2,6 +2,7 @@
 #include "BVFile.hpp"
 
 #include <iostream>
+#include <stdio.h>
 
 using namespace std;
 using namespace soci;
@@ -11,31 +12,31 @@ BVBoard::BVBoard(const string * fpath, const string * driver_name) {
   if (open_db_file_(fpath, driver_name)) {
     // pulling all data into vectors
     fetch_pin_data_(&this->sql_);
-    fetch_nail_data_(&this->sql_);
-    fetch_layout_data_(&this->sql_);
+    //fetch_nail_data_(&this->sql_);
+    //fetch_layout_data_(&this->sql_);
   }
   close_db_session_();
 
   {
-    // TODO: some debugging code to remove here
-    cout << "### BV Board Stats ###" << endl;
-    cout << "# " << this->pins.size() << " pins" << endl;
-    cout << "# " << this->nails.size() << " nails" << endl;
-    cout << "# " << this->layout.size() << " points" << endl;
-
-    cout << "### First Line Outputs ###" << endl;
-    Pin p = pins[0];
-    cout  << p.part_name << p.on_top << p.pin_number
-          << p.pin_name << p.x << p.y
-          << p.layer << p.net_name << endl;
-
-    Nail n = nails[0];
-    cout  << n.name << n.x << n.y
-          << n.type << n.grid << n.on_top
-          << n.net_number << n.net_name << endl;
-
-    Layout l = layout[0];
-    cout  << l.x << l.y << l.r << l.unique_group << endl;
+    // // TODO: some debugging code to remove here
+    // cout << "### BV Board Stats ###" << endl;
+    // cout << "# " << this->pins.size() << " pins" << endl;
+    // cout << "# " << this->nails.size() << " nails" << endl;
+    // cout << "# " << this->layout.size() << " points" << endl;
+    //
+    // cout << "### First Line Outputs ###" << endl;
+    // Pin p = pins[0];
+    // cout  << p.part_name << p.on_top << p.pin_number
+    //       << p.pin_name << p.x << p.y
+    //       << p.layer << p.net_name << endl;
+    //
+    // Nail n = nails[0];
+    // cout  << n.name << n.x << n.y
+    //       << n.type << n.grid << n.on_top
+    //       << n.net_number << n.net_name << endl;
+    //
+    // Layout l = layout[0];
+    // cout  << l.x << l.y << l.r << l.unique_group << endl;
   }
 }
 
@@ -72,32 +73,40 @@ void BVBoard::close_db_session_() {
 }
 
 void BVBoard::fetch_pin_data_(session * sql) {
-  rowset<row> row_set = (sql->prepare <<
-    " SELECT Part, TB, Pin, Name, X, Y, Layer, Net\
-      FROM Pin\
-      ORDER BY Pin.[Part];");
+  double r;
+  //*sql << "select X from Layout", into(r);
+  //cout << r << endl;
+  row rau;
+  sql->once << "SELECT X FROM Layout", into(rau);
 
-  for (auto& ro : row_set) {
-      Pin p = {"", "", false, -1, 0.0f, 0.0f, -1, ""};
+  rowset<double> rs = (sql->prepare << "SELECT X FROM Layout");
+  //copy(rs.begin(), rs.end(), ostream_iterator<double>(cout, "\n"));
 
-      p.part_name = ro.get<string>(0);
-      p.on_top = (ro.get<string>(1) == "(T)") ? true : false;
-      p.pin_number = ro.get<int>(2);
-      p.pin_name = ro.get<string>(3);
-      p.x = ro.get<double>(4);
-      p.y = ro.get<double>(5);
-      p.layer = ro.get<int>(6);
-      p.net_name = ro.get<string>(7);
-
-      this->pins.push_back(p);
-  }
+  // for (auto& ro : row_set) {
+  //   ro.get<double>(0);
+  //   cout << "X ";
+  // }
+  //
+  //     // Pin p = {"", "", false, -1, 0.0f, 0.0f, -1, ""};
+  //     //
+  //     // p.part_name = ro.get<string>(0);
+  //     // p.on_top = (ro.get<string>(1) == "(T)") ? true : false;
+  //     // p.pin_number = ro.get<int>(2);
+  //     // p.pin_name = ro.get<string>(3);
+  //     // p.x = ro.get<double>(4);
+  //     // p.y = ro.get<double>(5);
+  //     // p.layer = ro.get<int>(6);
+  //     // p.net_name = ro.get<string>(7);
+  //     //
+  //     // this->pins.push_back(p);
+  //}
 }
 
 void BVBoard::fetch_nail_data_(session * sql) {
   rowset<row> row_set = (sql->prepare <<
     " SELECT Nail, X, Y, Type, Grid, TB, NET, NetName, VirtualPinVia\
       FROM Nail\
-      ORDER BY Nail.[NetName];");
+      ORDER BY Nail.NetName;");
 
   for (auto& ro : row_set) {
       Nail n = {"", 0.0f, 0.0f, -1, "", false, "", ""};
@@ -119,7 +128,7 @@ void BVBoard::fetch_layout_data_(session * sql) {
   rowset<row> row_set = (sql->prepare <<
     " SELECT X, Y, R, Group\
       FROM Layout\
-      ORDER BY Layout.[X];");
+      ORDER BY Layout.X;");
 
   for (auto& ro : row_set) {
       Layout l = {0.0f, 0.0f, -1, -1};

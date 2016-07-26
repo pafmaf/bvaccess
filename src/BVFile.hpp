@@ -11,7 +11,7 @@ using namespace soci;
 // There's a good chance one of those drivers is presinstalled. (?)
 const string kStdWindowsAccessDriver = "Microsoft Access Driver (*.mdb)";
 const string kStdUnixAccessDriver = "";
-const string kStdLinuxAccessDriver = "";
+const string kStdLinuxAccessDriver = "MDBTools";
 
 #ifdef _WIN32
   const string kStdAccessDriver = kStdWindowsAccessDriver;
