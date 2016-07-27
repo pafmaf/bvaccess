@@ -75,6 +75,28 @@ struct Nail {
   string net_name;
 };
 
+namespace soci
+{
+  template<> struct type_conversion<Layout>
+  {
+    typedef values base_type;
+    static void from_base(values const & v, indicator /* ind */, Layout & l) {
+      l.x = v.get<double>(0);
+      l.y = v.get<double>("Y");
+      l.r = v.get<double>("R");
+      l.unique_group = v.get<double>("Group");
+    }
+
+    static void to_base(const Layout & l, values & v, indicator & ind) {
+      v.set("X", l.x);
+      v.set("Y", l.y);
+      v.set("R", l.r);
+      v.set("Group", l.unique_group);
+      ind = i_ok;
+    }
+  };
+}
+
 class BVBoard {
 public:
   vector<Layout> layout;

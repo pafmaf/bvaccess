@@ -73,14 +73,8 @@ void BVBoard::close_db_session_() {
 }
 
 void BVBoard::fetch_pin_data_(session * sql) {
-  double r;
-  //*sql << "select X from Layout", into(r);
-  //cout << r << endl;
-  row rau;
-  sql->once << "SELECT X FROM Layout", into(rau);
-
-  rowset<double> rs = (sql->prepare << "SELECT X FROM Layout");
-  //copy(rs.begin(), rs.end(), ostream_iterator<double>(cout, "\n"));
+  rowset<int> rs = (sql->prepare << "SELECT Group FROM Layout");
+  copy(rs.begin(), rs.end(), ostream_iterator<int>(cout, "\n"));
 
   // for (auto& ro : row_set) {
   //   ro.get<double>(0);
